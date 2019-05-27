@@ -24,9 +24,14 @@ void insertionTest(){
     std::cout << "[*] Printing normal list\n";
 
     Dictionary<int,int> dict;
-    //std::cout << dict.isEmpty();
-    dict.randomNode(10);
+    dict.insert(50,1);
+    dict.insert(51,1);
+    dict.insert(31,1);
+    dict.insert(11,1);
+    dict.insert(12,1);
+    dict.insert(251,1);
 
+    dict.insert(48,1);
     dict.display();
 
 }
