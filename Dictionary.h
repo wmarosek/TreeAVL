@@ -30,10 +30,10 @@ class Dictionary {
 
     /* ==== PRIVATE METHOD OF CLASS ==== */
 
+    bool insertHelper(const Key& k,const Info& i, Node* &n);
+
     void destroyHelper(Node* n);
     Node* removeHelper(const Key& k, Node* n);
-
-    bool insertHelper(const Key& k,const Info& i, Node* &n);
 
     void displayHelper(Node* n, int space);
 
@@ -42,6 +42,7 @@ class Dictionary {
     Node* findByKey(Node*& n ,const Key& k);
 
     Node* copyDictionaryHelper(Node *n);
+    bool compereHelper(Node* lhs, Node* rhs);
 
     int getBalance(Node* n);
     int getHeight(Node* n);
@@ -68,8 +69,11 @@ public:
     Dictionary(const Dictionary<Key,Info>& otherAVL);
     ~Dictionary();
 
-    bool operator==(const Dictionary &rhs) const;
-    bool operator!=(const Dictionary &rhs) const;
+    Dictionary& operator=(const Dictionary<Key,Info>& other);
+    bool operator==(const Dictionary &rhs);
+    bool operator!=(const Dictionary &rhs);
+
+
 
     void copyDictionary(const Dictionary<Key,Info>& otherAVL);
 
@@ -78,7 +82,7 @@ public:
     void insert(const Key &, const Info&);
 
     void display();
-    void displayNode(const Key&);
+    void displayInfo(const Key&);
 
     void destroy();
     void removeByKey(const Key&);
@@ -122,6 +126,21 @@ public:
     };
     Iterator begin();
     Iterator end();
+
+
+    /* ====       Exceptions        ==== */
+    class InvalidKey {
+    public:
+        void msg(){
+            std::cout << "Invalid Key of Dictionary" << std::endl;
+        }
+    };
+    class InvalidInfo {
+    public:
+        void msg(){
+            std::cout << "Invalid Info of Dictionary" << std::endl;
+        }
+    };
 };
 
 
@@ -142,30 +161,19 @@ Dictionary<Key, Info>::~Dictionary() {
 }
 
 template<typename Key, typename Info>
-bool Dictionary<Key, Info>::operator==(const Dictionary &rhs) const {
-    Iterator it2 = rhs.begin();
-    for(Iterator it = this->begin(); it!=end(); it++){
-        if(it!=it2)
-            return false;
-        it2++;
-    }
-    return true;
+bool Dictionary<Key, Info>::operator==(const Dictionary &rhs)  {
+    return (this->compereHelper(this->root, rhs.root));
 }
 
 template<typename Key, typename Info>
-bool Dictionary<Key, Info>::operator!=(const Dictionary &rhs) const {
-    Iterator it2 = rhs.begin();
-    for(Iterator it = this->begin(); it!=end(); it++){
-        if(it!=it2)
-            return true;
-        it2++;
-    }
-    return false;
+bool Dictionary<Key, Info>::operator!=(const Dictionary &rhs)  {
+    return !(this->compereHelper(this->root, rhs.root));
 }
 
 /* ====   ====   ====   ====
  *      BASIC METHOD
  * ====   ====   ====   ====*/
+
 
 template<typename Key, typename Info>
 bool Dictionary<Key, Info>::isEmpty() const {
@@ -229,23 +237,42 @@ int Dictionary<Key, Info>::size() {
     return 0;
 }
 
+template<typename Key, typename Info>
+bool Dictionary<Key, Info>::compereHelper(Dictionary::Node *lhs, Dictionary::Node *rhs) {
+    if(lhs == rhs)
+        return true;
+    else if(!rhs || !lhs)
+        return false;
+    bool result = (lhs->key == rhs->key && lhs->info == rhs->info);
+    return result && compereHelper(lhs->right, rhs->right) && compereHelper(lhs->left, rhs->left) ;
+}
+
 /* ====   ====   ====   ====
  *      COPYING METHOD
  * ====   ====   ====   ====*/
 
 template<typename Key, typename Info>
 Dictionary<Key, Info>::Dictionary(const Dictionary<Key, Info> &otherAVL) {
-    copyDictionary(otherAVL);
+    this->copyDictionary(otherAVL);
+}
+
+template<typename Key, typename Info>
+Dictionary<Key, Info> &Dictionary<Key, Info>::operator=(const Dictionary<Key, Info> &other) {
+    this->copyDictionary(other);
+    return *this;
 }
 
 template<typename Key, typename Info>
 void Dictionary<Key, Info>::copyDictionary(const Dictionary<Key, Info> &otherAVL){
     if(!isEmpty())
         destroy();
+    if(*this == otherAVL)
+        return;
+
     if(otherAVL.isEmpty())
         destroy();
     else{
-        copyDictionaryHelper(otherAVL.root);
+        this->root = copyDictionaryHelper(otherAVL.root);
     }
 }
 
@@ -258,11 +285,14 @@ typename Dictionary<Key, Info>::Node* Dictionary<Key, Info>::copyDictionaryHelpe
     curr->key = n->key;
     curr->info = n->info;
     curr->height = n->height;
+    curr->parent = n->parent;
 
     curr->right = copyDictionaryHelper(n->right);
     curr->left = copyDictionaryHelper(n->left);
     return curr;
 }
+
+
 
 
 
@@ -368,15 +398,22 @@ void Dictionary<Key, Info>::display() {
     std::cout << "\n\n\n\n\n";
 }
 
+template<typename Key, typename Info>
+void Dictionary<Key, Info>::displayInfo(const Key &k) {
+    Node* temp = findByKey(root, k);
+    if(temp)
+        std::cout << "\nKey: "<< temp->key << "\nInfo: "<< temp->info  << "\nBalance: " << getBalance(temp) << "\nHeight: " << temp->height << "\nParent key: " << temp->parent->key << std::endl;
+    std::cerr << "[!] Dictionary doesn't have Node with " << k << "\n";
+
+}
+
 
 /* ====   ====   ====   ====
  *      INSERTION METHODS
  * ====   ====   ====   ====*/
 template<typename Key, typename Info>
 void Dictionary<Key, Info>::insert(const Key &k, const Info &i) {
-    updateParent(root);
     this->insertHelper(k,i,root);
-    updateHeight(root);
 
 }
 
@@ -399,7 +436,6 @@ bool Dictionary<Key, Info>::insertHelper(const Key &k, const Info &i, Dictionary
     }
     else{
         this->removeByKey(k);
-
         return true;
     }
 
@@ -420,9 +456,10 @@ void Dictionary<Key, Info>::update(const Key &old, const Key &newKey, const Info
     if(findByKey(old)){
         removeByKey(old);
         insert(newKey,i);
+        return;
 
     }
-    std::cerr << "[!] Ring doesn't have Node with " << old << "\n";
+    std::cerr << "[!] Dictionary doesn't have Node with " << old << "\n";
 
 }
 
@@ -451,34 +488,33 @@ template<typename Key, typename Info>
 typename Dictionary<Key,Info>::Node *Dictionary<Key, Info>::removeHelper(const Key &k, Dictionary::Node *n) {
     if(!n)
         return nullptr;
-
     if(k < n->key)
         n->left = removeHelper(k, n->left);
     else if(k > n->key)
         n->right = removeHelper(k, n->right);
     else{
-
-        /*
-         * One child or no child case
-         */
-        if(!n->left || !n->right){
-            Node* temp = n->left ? n->left : n->right;
-            /* No child */
-            if(n == root && !temp){
+        if(!n->left && !n->right){
+            if(n == root){
                 root = nullptr;
-            }
-            if(!temp){
-                temp = n;
-                n = nullptr;
-            }
-            else
-                *n = *temp; //Copy the content of non-empty child
 
-            delete temp;
+            }
+            delete n;
+            n = nullptr;
+        }
+        else if(!n->left){
+            Node* temp = n->right;
+            delete n;
+            n = temp;
+        }
+        else if(!n->right){
+            Node* temp = n->left;
+            delete n;
+            n = temp;
         }
         else{
             Node* temp = findMin(n->right);
             n->key = temp->key;
+            n->info = temp->info;
             n->right = removeHelper(temp->key, n->right);
         }
     }
@@ -552,7 +588,7 @@ void Dictionary<Key, Info>::randomNodes(int number) {
         while(size() < number){
             int randomKey = rand() % 30 + 1;
             int randomInfo = rand() % 30 + 1;
-            std::cout << randomKey << std::endl;
+//            std::cout << randomKey << std::endl;
             if(!findByKey(randomKey))
                 this->insert(randomKey, randomInfo);
         }
@@ -576,8 +612,11 @@ bool Dictionary<Key, Info>::updateParent(Dictionary::Node *&n) {
         n->left->parent = n;
         updateParent(n->left);
     }
-    if(!n->right || !n->left){
+    if(!n->right && !n->left){
         return true;
+    }
+    if(n == root){
+        n->parent = nullptr;
     }
 
 
@@ -603,14 +642,15 @@ template<typename Key, typename Info>
 Key &Dictionary<Key, Info>::Iterator::getKey() {
     if(iter)
         return iter->key;
+    throw InvalidKey();
 
 }
 
 template<typename Key, typename Info>
 Info &Dictionary<Key, Info>::Iterator::getInfo() {
-    if(iter){
+    if(iter)
         return iter->info;
-    }
+    throw InvalidInfo();
 }
 
 template<typename Key, typename Info>
@@ -655,12 +695,16 @@ template<typename Key, typename Info>
 typename Dictionary<Key, Info>::Iterator& Dictionary<Key, Info>::Iterator::operator--() {
     if(iter->left){
         iter = iter->left;
-        while(iter->right != nullptr){
+        while(iter->right){
             iter = iter->right;
         }
     }
     else{
         Node* temp = iter->parent;
+        while(temp->left == iter){
+            iter = temp;
+            iter = iter->parent;
+        }
         if(temp->right == iter)
             iter = temp;
     }
