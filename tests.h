@@ -22,8 +22,6 @@ void deletingTest();
 void sizeTest();
 //Assigment operator test
 void assigmentTest();
-//Overloading operator test
-void overloadingTest();
 //Update method test
 void updateTest();
 
@@ -88,16 +86,18 @@ void insertionTest(){
         dict.insert(5, 1);
         dict.insert(11, 1);
         dict.insert(0, 1);
-        std::cout << "[*] Printing information of node with key 0\n";
         if (dict.size() != 6 || dict.end().getKey() != 11 || dict.begin().getKey() != 0) {
             correct = false;
         }
-        for (it = dict.begin(); it != (dict.end() - 1); it++) {
+
+        for (it = dict.begin(); it != (dict.end()-1); it++) {
             if (it.getKey() >= (++it).getKey())
                 correct = false;
         }
         std::cout << "[*] Printing dictionary created by insertion method\n";
         dict.display();
+        std::cout << "[*] Printing information of node with key 0\n";
+
         dict.displayInfo(0);
 
     }
@@ -119,7 +119,7 @@ void deletingTest() {
         Dictionary<int, int>::Iterator it;
         Dictionary<int, int> dict;
         dict.destroy();
-        std::cout << "\n\t ==== INSERTION TEST ====\n\n";
+        std::cout << "\n\t ==== DELETING TEST ====\n\n";
 
         dict.insert(1, 1);
         dict.insert(5, 1);
@@ -144,6 +144,8 @@ void deletingTest() {
             if (it.getKey() == 5)
                 correct = false;
         }
+        if((++it) == dict.end() && dict.end().getKey() == 5)
+            correct = false;
 
         std::cout << "[*] Printing dictionary after inserting node with existing Key \n";
         dict.display();
@@ -290,22 +292,6 @@ void updateTest() {
 
 }
 
-void result(bool correct){
-    number++;
-    if (correct)
-    {
-        std::cout << "[***] THE TEST RAN CORRECTLY! [***]\n";
-        valid++;
-        return;
-    }
-    std::cerr << "[!!!] THE TEST RAN INCORRECTLY [!!!]\n";
-}
-
-void conclusion(){
-    std::cout << "\n\n ==== Conclusion of tests ====\n";
-    std::cout << "\n[***] Test: " << number << "\n[***] Correct: " << valid << std::endl;
-}
-
 void iteratorTest(){
     bool correct = true;
     try {
@@ -341,24 +327,6 @@ void iteratorTest(){
             correct = false;
 
 
-        it = dict.end();
-        std::cout << it.getKey() << ' ';
-        it--;
-        std::cout << it.getKey() << ' ';
-        it--;
-        std::cout << it.getKey() << ' ';
-        it--;
-        std::cout << it.getKey() << ' ';
-        it--;
-        std::cout << it.getKey() << ' ';
-        it--;
-        std::cout << it.getKey() << ' ';
-        it--;
-        std::cout << it.getKey() << ' ';
-        it--;
-        std::cout << it.getKey() << ' ';
-        it--;
-        std::cout << it.getKey() << ' ';
 
 
     }
@@ -374,4 +342,23 @@ void iteratorTest(){
 
 
 }
+
+
+
+void result(bool correct){
+    number++;
+    if (correct)
+    {
+        std::cout << "[***] THE TEST RAN CORRECTLY! [***]\n";
+        valid++;
+        return;
+    }
+    std::cerr << "[!!!] THE TEST RAN INCORRECTLY [!!!]\n";
+}
+
+void conclusion(){
+    std::cout << "\n\n ==== Conclusion of tests ====\n";
+    std::cout << "\n[***] Test: " << number << "\n[***] Correct: " << valid << std::endl;
+}
+
 #endif //LAB3_TESTS_H

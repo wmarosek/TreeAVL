@@ -42,26 +42,28 @@ class Dictionary {
     Node* findByKey(Node*& n ,const Key& k);
 
     Node* copyDictionaryHelper(Node *n);
+
     bool compereHelper(Node* lhs, Node* rhs);
 
-    int getBalance(Node* n);
-    int getHeight(Node* n);
-    int getSize(Node* n);
-    int updateHeight(Node *&n);
-    bool updateParent(Node *&n);
     void balanceTree(Node *&n);
+    int getBalance(Node* n);
+
+    int getHeight(Node* n);
+    int updateHeight(Node *&n);
+
+    int getSize(Node* n);
+
+    bool updateParent(Node *&n);
 
 
     /* ====     ROTATING METHOD     ==== */
 
-
-    void rRotate(Node* &n);
-    void lRotate(Node* &n);
-    void lrRotate(Node* &n);
-    void rlRotate(Node* &n);
+    void rRotate(Node* &n);     //Right-Right rotation
+    void lRotate(Node* &n);     //Left-Left rotation
+    void lrRotate(Node* &n);    //Left-Right rotation
+    void rlRotate(Node* &n);    //Right-Left rotation
 
 public:
-    bool isEmpty() const;
 
     /* ==== CONSTRUCTORS, OPERATORSS ==== */
 
@@ -73,24 +75,22 @@ public:
     bool operator==(const Dictionary &rhs);
     bool operator!=(const Dictionary &rhs);
 
-
-
-    void copyDictionary(const Dictionary<Key,Info>& otherAVL);
-
-
+    int size();
+    bool isEmpty() const;
+    bool findByKey(const Key&);
 
     void insert(const Key &, const Info&);
+
+    void update(const Key& old, const Key& newKey, const Info &i);
 
     void display();
     void displayInfo(const Key&);
 
+    void copyDictionary(const Dictionary<Key,Info>& otherAVL);
+
     void destroy();
     void removeByKey(const Key&);
 
-    bool findByKey(const Key&);
-
-    void update(const Key& old, const Key& newKey, const Info &i);
-    int size();
 
 
     /* ====      OTHERS METHODS       ====*/
@@ -103,7 +103,7 @@ public:
         Node *iter;
     public:
         Iterator():iter(nullptr) {}
-        Iterator(Node* node):iter(node) {}
+        Iterator(Node* node) : iter(node) {}
         Iterator(const Iterator& src) : iter(src.iter) {}
         ~Iterator() = default;
         Iterator& operator=(const Iterator& other);
@@ -132,13 +132,13 @@ public:
     class InvalidKey {
     public:
         void msg(){
-            std::cout << "Invalid Key of Dictionary" << std::endl;
+            std::cerr << "\n[!] Invalid Key of Dictionary" << std::endl;
         }
     };
     class InvalidInfo {
     public:
         void msg(){
-            std::cout << "Invalid Info of Dictionary" << std::endl;
+            std::cout << "\n[!] Invalid Info of Dictionary" << std::endl;
         }
     };
 };
@@ -401,8 +401,10 @@ void Dictionary<Key, Info>::display() {
 template<typename Key, typename Info>
 void Dictionary<Key, Info>::displayInfo(const Key &k) {
     Node* temp = findByKey(root, k);
-    if(temp)
+    if(temp){
         std::cout << "\nKey: "<< temp->key << "\nInfo: "<< temp->info  << "\nBalance: " << getBalance(temp) << "\nHeight: " << temp->height << "\nParent key: " << temp->parent->key << std::endl;
+        return;
+    }
     std::cerr << "[!] Dictionary doesn't have Node with " << k << "\n";
 
 }
