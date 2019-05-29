@@ -24,7 +24,8 @@ void sizeTest();
 void assigmentTest();
 //Update method test
 void updateTest();
-
+//Iterator test
+void iteratorTest();
 
 /*  ================================================
 
@@ -90,23 +91,14 @@ void insertionTest(){
             correct = false;
         }
 
-        for (it = dict.begin(); it != (dict.end()-1); it++) {
-            if (it.getKey() >= (++it).getKey())
-                correct = false;
-        }
         std::cout << "[*] Printing dictionary created by insertion method\n";
         dict.display();
         std::cout << "[*] Printing information of node with key 0\n";
-
         dict.displayInfo(0);
 
     }
-    catch (Dictionary<int, int>::InvalidKey x) {
-        x.msg();
-        correct = false;
-    }
-    catch (Dictionary<int, int>::InvalidInfo x) {
-        x.msg();
+    catch(std::exception &ex){
+        std::cout << ex.what() << std::endl;
         correct = false;
     }
     result(correct);
@@ -176,12 +168,8 @@ void deletingTest() {
         if (dict.size() != 1)
             correct = false;
     }
-    catch (Dictionary<int, int>::InvalidKey x) {
-        x.msg();
-        correct = false;
-    }
-    catch (Dictionary<int, int>::InvalidInfo x) {
-        x.msg();
+    catch(std::exception &ex){
+        std::cout << ex.what() << std::endl;
         correct = false;
     }
     result(correct);
@@ -279,12 +267,8 @@ void updateTest() {
             correct = false;
 
     }
-    catch (Dictionary<int,int>::InvalidKey x){
-        x.msg();
-        correct = false;
-    }
-    catch (Dictionary<int,int>::InvalidInfo x){
-        x.msg();
+    catch(std::exception &ex){
+        std::cout << ex.what() << std::endl;
         correct = false;
     }
     result(correct);
@@ -315,27 +299,16 @@ void iteratorTest(){
 
         std::cout << "[*] Printing base dictionary\n";
         dict.display();
-        it = dict.begin();
-        std::cout << it.getKey() << ' ';
-        do {
-            it++;
-            std::cout << it.getKey() << ' ';
 
-        } while (it != dict.end());
-        std::cout << "\n";
-        if (it.getKey() != 11)
-            correct = false;
+        dict.printInOrder();
+
 
 
 
 
     }
-    catch (Dictionary<int,int>::InvalidKey x){
-        x.msg();
-        correct = false;
-    }
-    catch (Dictionary<int,int>::InvalidInfo x){
-        x.msg();
+    catch(std::exception &ex){
+        std::cout << ex.what() << std::endl;
         correct = false;
     }
     result(correct);

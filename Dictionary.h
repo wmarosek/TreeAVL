@@ -7,6 +7,7 @@
 
 #include <time.h>
 #include <typeinfo>
+#include <stdexcept>
 
 template<typename Key, typename Info>
 class Dictionary {
@@ -77,6 +78,7 @@ public:
 
     int size();
     bool isEmpty() const;
+
     bool findByKey(const Key&);
 
     void insert(const Key &, const Info&);
@@ -85,6 +87,7 @@ public:
 
     void display();
     void displayInfo(const Key&);
+    void printInOrder();
 
     void copyDictionary(const Dictionary<Key,Info>& otherAVL);
 
@@ -113,9 +116,6 @@ public:
         Iterator operator++(int);
         Iterator operator+(int r);
 
-        Iterator& operator--();
-        Iterator operator--(int);
-        Iterator operator-(int r);
 
         bool operator==(const Iterator &other) const;
         bool operator!=(const Iterator &other) const;
@@ -128,19 +128,6 @@ public:
     Iterator end();
 
 
-    /* ====       Exceptions        ==== */
-    class InvalidKey {
-    public:
-        void msg(){
-            std::cerr << "\n[!] Invalid Key of Dictionary" << std::endl;
-        }
-    };
-    class InvalidInfo {
-    public:
-        void msg(){
-            std::cout << "\n[!] Invalid Info of Dictionary" << std::endl;
-        }
-    };
 };
 
 
@@ -264,16 +251,15 @@ Dictionary<Key, Info> &Dictionary<Key, Info>::operator=(const Dictionary<Key, In
 
 template<typename Key, typename Info>
 void Dictionary<Key, Info>::copyDictionary(const Dictionary<Key, Info> &otherAVL){
-    if(!isEmpty())
-        destroy();
-    if(*this == otherAVL)
+    if(this == &otherAVL)
         return;
 
+    if(!isEmpty())
+        destroy();
     if(otherAVL.isEmpty())
         destroy();
-    else{
-        this->root = copyDictionaryHelper(otherAVL.root);
-    }
+
+    this->root = copyDictionaryHelper(otherAVL.root);
 }
 
 template<typename Key, typename Info>
@@ -409,6 +395,21 @@ void Dictionary<Key, Info>::displayInfo(const Key &k) {
 
 }
 
+template<typename Key, typename Info>
+void Dictionary<Key, Info>::printInOrder() {
+    Iterator it = this->begin();
+
+    while(it != this->end()){
+        std::cout << it.getKey() << " ";
+        it++;
+    }
+    if((it) == this->end()){
+        std::cout << it.getKey() << "\n";
+
+    }
+
+}
+
 
 /* ====   ====   ====   ====
  *      INSERTION METHODS
@@ -523,7 +524,7 @@ typename Dictionary<Key,Info>::Node *Dictionary<Key, Info>::removeHelper(const K
     if(!n)
         return n;
 
-    n->height = 1 + max(getHeight(n->left), getHeight(n->right));
+    updateHeight(n);
     balanceTree(n);
     return n;
 }
@@ -543,6 +544,9 @@ void Dictionary<Key, Info>::removeByKey(const Key &k) {
  * ====   ====   ====   ====*/
 template<typename Key, typename Info>
 typename  Dictionary<Key, Info>::Node *Dictionary<Key, Info>::findMax(Dictionary::Node *n) {
+    if(!n)
+        throw std::domain_error("\n[!] Domain error");
+
     Node* curr = n;
     while(curr->right){
         curr = curr->right;
@@ -552,11 +556,13 @@ typename  Dictionary<Key, Info>::Node *Dictionary<Key, Info>::findMax(Dictionary
 }
 template<typename Key, typename Info>
 typename  Dictionary<Key, Info>::Node *Dictionary<Key, Info>::findMin(Dictionary<Key, Info>::Node *n){
+    if(!n)
+        throw std::domain_error("\n[!] Domain error");
+
     Node* curr = n;
     while(curr->left){
         curr = curr->left;
     }
-
     return curr;
 }
 
@@ -577,6 +583,7 @@ template<typename Key, typename Info>
 bool Dictionary<Key, Info>::findByKey(const Key &k) {
     Node* temp = findByKey(root, k);
     return (temp != nullptr);
+
 }
 
 /* ====   ====   ====   ====
@@ -590,7 +597,6 @@ void Dictionary<Key, Info>::randomNodes(int number) {
         while(size() < number){
             int randomKey = rand() % 30 + 1;
             int randomInfo = rand() % 30 + 1;
-//            std::cout << randomKey << std::endl;
             if(!findByKey(randomKey))
                 this->insert(randomKey, randomInfo);
         }
@@ -644,7 +650,7 @@ template<typename Key, typename Info>
 Key &Dictionary<Key, Info>::Iterator::getKey() {
     if(iter)
         return iter->key;
-    throw InvalidKey();
+    throw std::domain_error("\n[!] Invalid Key");
 
 }
 
@@ -652,7 +658,7 @@ template<typename Key, typename Info>
 Info &Dictionary<Key, Info>::Iterator::getInfo() {
     if(iter)
         return iter->info;
-    throw InvalidInfo();
+    throw std::domain_error("\n[!] Invalid Info");
 }
 
 template<typename Key, typename Info>
@@ -692,44 +698,6 @@ typename Dictionary<Key,Info>::Iterator Dictionary<Key, Info>::Iterator::operato
     return temp;
 }
 
-
-template<typename Key, typename Info>
-typename Dictionary<Key, Info>::Iterator& Dictionary<Key, Info>::Iterator::operator--() {
-    if(iter->left){
-        iter = iter->left;
-        while(iter->right){
-            iter = iter->right;
-        }
-    }
-    else{
-        Node* temp = iter->parent;
-        while(temp->left == iter){
-            iter = temp;
-            iter = iter->parent;
-        }
-        if(temp->right == iter)
-            iter = temp;
-    }
-
-    return *this;
-}
-
-template<typename Key, typename Info>
-typename Dictionary<Key, Info>::Iterator Dictionary<Key, Info>::Iterator::operator--(int) {
-    Iterator temp(*this);
-    --(*this);
-    return temp;
-}
-
-template<typename Key, typename Info>
-typename Dictionary<Key,Info>::Iterator Dictionary<Key, Info>::Iterator::operator-(int r) {
-    Iterator temp(this->iter);
-    while( temp.iter != nullptr && r>0){
-        temp--;
-        r--;
-    }
-    return temp;
-}
 
 template<typename Key, typename Info>
 typename Dictionary<Key, Info>::Iterator &Dictionary<Key, Info>::Iterator::operator=(const Dictionary::Iterator &other) {
